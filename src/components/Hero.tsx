@@ -40,7 +40,7 @@ export function Hero() {
           {/* FIX: Added a text gradient here for better visual pop,
             inspired by your Solution.tsx component.
           */}
-          <span className="from-primary to-accent bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Make Your Transactions Offline.
           </span>
         </motion.h1>
