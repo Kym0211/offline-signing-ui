@@ -6,9 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { CheckCircle, AlertCircle, Rocket } from "lucide-react";
-
+import { CheckCircle, AlertCircle, Rocket, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
 import { broadcastTransaction } from "@/lib/broadcast";
+
+// Animation variants for staggering
+const FADE_UP_ANIMATION_VARIANTS = {
+    hidden: { opacity: 0, y: 10 },
+    show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 100 } },
+};
 
 export default function BroadcastPage() {
     const [unsignedTxFile, setUnsignedTxFile] = useState<File | null>(null);
@@ -23,14 +29,13 @@ export default function BroadcastPage() {
             setError("Please upload both the unsigned transaction and the signature file.");
             return;
         }
-
         setIsLoading(true);
         setError(null);
         setTxSignature(null);
 
         try {
+            // Pass File objects directly to broadcastTransaction
             const sig = await broadcastTransaction(unsignedTxFile, signatureFile);
-            
             setTxSignature(sig); 
 
         } catch (err) {
@@ -41,67 +46,98 @@ export default function BroadcastPage() {
     };
 
     return (
-        <div className="flex items-center justify-center py-12">
-            <Card className="w-full max-w-md bg-gray-900/50" >
+        // FIX: Added flex-1 to ensure vertical centering
+        <div className="flex flex-1 items-center justify-center p-12 h-screen">
+            {/* FIX: Use bg-background and border for consistent theme */}
+            <Card className="w-full max-w-md bg-background border border-border">
                 <CardHeader>
                     <CardTitle>Broadcast Transaction</CardTitle>
                     <CardDescription>
-                        Upload your unsigned transaction file and the generated signature file to send.
+                        Upload your transaction and signature files to send.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     {/* The main form */}
                     {!txSignature && (
-                        <form onSubmit={(e) => { e.preventDefault(); handleBroadcast(); }} className="space-y-4">
-                            <div className="space-y-2">
+                        <motion.form 
+                            onSubmit={(e) => { e.preventDefault(); handleBroadcast(); }} 
+                            className="space-y-4"
+                            initial="hidden"
+                            animate="show"
+                            variants={{
+                                show: { transition: { staggerChildren: 0.1 } },
+                            }}
+                        >
+                            <motion.div variants={FADE_UP_ANIMATION_VARIANTS} className="space-y-2">
                                 <Label htmlFor="unsigned-tx-file">1. Unsigned Transaction File</Label>
                                 <Input
                                     id="unsigned-tx-file"
                                     type="file"
                                     accept=".json"
                                     onChange={(e) => setUnsignedTxFile(e.target.files?.[0] || null)}
-                                    className="file:mr-4 file:rounded-md file:border-0 file:bg-gray-700 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-gray-600"
+                                    // FIX: Use theme colors for file input
+                                    className="file:mr-4 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                                 />
-                            </div>
+                            </motion.div>
 
-                            <div className="space-y-2">
+                            <motion.div variants={FADE_UP_ANIMATION_VARIANTS} className="space-y-2">
                                 <Label htmlFor="signature-file">2. Signature File</Label>
                                 <Input
                                     id="signature-file"
                                     type="file"
                                     accept=".json"
                                     onChange={(e) => setSignatureFile(e.target.files?.[0] || null)}
-                                    className="file:mr-4 file:rounded-md file:border-0 file:bg-gray-700 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-gray-600"
+                                    // FIX: Use theme colors for file input
+                                    className="file:mr-4 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                                 />
-                            </div>
+                            </motion.div>
 
-                            <Button
-                                type="submit"
-                                className="w-full"
-                                disabled={!unsignedTxFile || !signatureFile || isLoading}
-                            >
-                                <Rocket className="mr-2 h-5 w-5" />
-                                {isLoading ? "Broadcasting..." : "Broadcast Transaction"}
-                            </Button>
-                        </form>
+                            <motion.div variants={FADE_UP_ANIMATION_VARIANTS}>
+                                <Button
+                                    type="submit"
+                                    className="w-full"
+                                    disabled={!unsignedTxFile || !signatureFile || isLoading}
+                                >
+                                    {isLoading ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                            Broadcasting...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Rocket className="mr-2 h-5 w-5" />
+                                            Broadcast Transaction
+                                        </>
+                                    )}
+                                </Button>
+                            </motion.div>
+                        </motion.form>
                     )}
 
                     {/* Error Message */}
                     {error && (
-                        <div className="mt-4 flex items-center rounded-md border border-red-500 bg-red-900/20 p-3 text-red-300">
+                        <motion.div 
+                            className="mt-4 flex items-center rounded-md border border-destructive bg-destructive/10 p-3 text-destructive"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                        >
                             <AlertCircle className="mr-2 h-5 w-5" />
                             <p className="text-sm">{error}</p>
-                        </div>
+                        </motion.div>
                     )}
 
                     {/* Success Message */}
                     {txSignature && (
-                        <div className="mt-4 space-y-4 text-center">
+                        <motion.div 
+                            className="mt-4 space-y-4 text-center"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                        >
                             <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
-                            <h3 className="text-lg font-medium text-white">Transaction Sent!</h3>
-                            <p className="text-sm text-gray-400">Your transaction has been successfully broadcast to the network.</p>
+                            <h3 className="text-lg font-medium text-foreground">Transaction Sent!</h3>
+                            <p className="text-sm text-muted-foreground">Your transaction has been successfully broadcast.</p>
                             
-                            <Button asChild variant="link" className="text-blue-400">
+                            <Button asChild variant="link" className="text-primary">
                                 <Link 
                                     href={`https://explorer.solana.com/tx/${txSignature}?cluster=devnet`} 
                                     target="_blank"
@@ -122,7 +158,7 @@ export default function BroadcastPage() {
                             >
                                 Send Another
                             </Button>
-                        </div>
+                        </motion.div>
                     )}
                 </CardContent>
             </Card>

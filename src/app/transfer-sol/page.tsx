@@ -17,7 +17,7 @@ const downloadJson = (content: string, fileName: string) => {
 };
 
 export default function TransferSolPage() {
-    const router = useRouter();
+    // const router = useRouter();
     const [unsignedTxData, setUnsignedTxData] = useState<string | null>(null);
     
     const [isLoading, setIsLoading] = useState(false);
@@ -43,13 +43,13 @@ export default function TransferSolPage() {
             setError(err instanceof Error ? err.message : "An unknown error occurred");
         } finally {
             setIsLoading(false);
-            router.replace('/offline');
+            // router.replace('/offline');
         }
     };
 
     if (unsignedTxData) {
         return (
-            <div className="flex w-full items-center justify-center py-12">
+            <div className="flex w-full items-center justify-center py-12 h-screen">
                 <Card className="w-full max-w-md">
                     <CardHeader>
                         <CardTitle>Transaction Created</CardTitle>
@@ -80,7 +80,7 @@ export default function TransferSolPage() {
     }
 
     return (
-        <div className="flex items-center justify-center py-12">
+        <div className="flex items-center justify-center py-12 h-screen">
             <FormCard
                 onFormSubmit={handleFormSubmit}
                 isLoading={isLoading}

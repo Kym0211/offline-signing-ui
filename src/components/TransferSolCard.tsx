@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react"; // For the spinner
 
 // Define a type for our error state
 type FormErrors = {
@@ -27,6 +29,19 @@ interface FormCardProps {
     externalError: string | null;
     onFormSubmit: (data: FormData) => void; 
 }
+
+// Animation variants for staggering
+const FADE_UP_ANIMATION_VARIANTS = {
+  hidden: { opacity: 0, y: 10 },
+  show: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { 
+      type: "spring" as const, // Ensure type is compatible
+      stiffness: 100 
+    } 
+  },
+};
 
 export default function FormCard({ isLoading, externalError, onFormSubmit }: FormCardProps) {
   const [formData, setFormData] = useState<FormData>({
@@ -69,15 +84,28 @@ export default function FormCard({ isLoading, externalError, onFormSubmit }: For
   };
 
   return (
-    <Card className="w-full max-w-md bg-gray-900/50">
+    <Card className="w-full max-w-md bg-background border border-border">
       <CardHeader>
-        <CardTitle>Transfer Sol</CardTitle>
-        <CardDescription>Please fill out all fields below</CardDescription>
+        <CardTitle>Construct SOL Transfer</CardTitle>
+        <CardDescription>Fill out the fields to create an unsigned transaction.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Use motion.form for staggered animations */}
+        <motion.form
+          onSubmit={handleSubmit}
+          className="space-y-4"
+          initial="hidden"
+          animate="show"
+          variants={{
+            show: {
+              transition: {
+                staggerChildren: 0.1, // Stagger each child's animation
+              },
+            },
+          }}
+        >
           {/* Sender Address (Cold Wallet) */}
-          <div className="space-y-2">
+          <motion.div variants={FADE_UP_ANIMATION_VARIANTS} className="space-y-2">
             <Label htmlFor="senderAddress">Sender Address (Cold Wallet)</Label>
             <Input
               id="senderAddress"
@@ -89,12 +117,12 @@ export default function FormCard({ isLoading, externalError, onFormSubmit }: For
               required
             />
             {errors.senderAddress && (
-              <p className="text-sm text-red-500">{errors.senderAddress}</p>
+              <p className="text-sm text-destructive">{errors.senderAddress}</p>
             )}
-          </div>
+          </motion.div>
 
           {/* Recipient Address */}
-          <div className="space-y-2">
+          <motion.div variants={FADE_UP_ANIMATION_VARIANTS} className="space-y-2">
             <Label htmlFor="recipientAddress">Recipient Address</Label>
             <Input
               id="recipientAddress"
@@ -106,12 +134,12 @@ export default function FormCard({ isLoading, externalError, onFormSubmit }: For
               required
             />
             {errors.recipientAddress && (
-              <p className="text-sm text-red-500">{errors.recipientAddress}</p>
+              <p className="text-sm text-destructive">{errors.recipientAddress}</p>
             )}
-          </div>
+          </motion.div>
 
           {/* Nonce Pubkey */}
-          <div className="space-y-2">
+          <motion.div variants={FADE_UP_ANIMATION_VARIANTS} className="space-y-2">
             <Label htmlFor="noncePubkey">Nonce Pubkey</Label>
             <Input
               id="noncePubkey"
@@ -123,13 +151,12 @@ export default function FormCard({ isLoading, externalError, onFormSubmit }: For
               required
             />
             {errors.noncePubkey && (
-              <p className="text-sm text-red-500">{errors.noncePubkey}</p>
+              <p className="text-sm text-destructive">{errors.noncePubkey}</p>
             )}
-          </div>
-
+          </motion.div>
 
           {/* Amount */}
-          <div className="space-y-2">
+          <motion.div variants={FADE_UP_ANIMATION_VARIANTS} className="space-y-2">
             <Label htmlFor="amount">Amount (SOL)</Label>
             <Input
               id="amount"
@@ -142,16 +169,32 @@ export default function FormCard({ isLoading, externalError, onFormSubmit }: For
               step="any"
               required
             />
-          </div>
+          </motion.div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Creating Transaction..." : "Create Transaction"}
-          </Button>
+          {/* Submit Button */}
+          <motion.div variants={FADE_UP_ANIMATION_VARIANTS}>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create Transaction"
+              )}
+            </Button>
+          </motion.div>
           
+          {/* External Error */}
           {externalError && (
-            <p className="text-sm text-red-500">{externalError}</p>
+            <motion.p 
+              variants={FADE_UP_ANIMATION_VARIANTS} 
+              className="text-sm text-destructive"
+            >
+              {externalError}
+            </motion.p>
           )}
-        </form>
+        </motion.form>
       </CardContent>
     </Card>
   );
